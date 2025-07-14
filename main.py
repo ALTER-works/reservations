@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session
+from functools import wraps
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # для сессий
@@ -7,13 +8,24 @@ app.secret_key = 'your_secret_key'  # для сессий
 users_db = {
     'user@example.com': {'password': 'pass123'}
 }
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        user_email = session.get('user')
+        if not user_email or user_email not in users_db:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 @app.route('/', methods=['GET', 'POST'])
 def main_page():
     if request.method == 'POST':
-        # При нажатии "Get started" — переходим на страницу логина
-        return redirect(url_for('login'))
-    return render_template('main_page.html')
+        user = session.get('user')  # Получаем пользователя из сессии (проверяем по дб и куки)
+        if not user or user not in users_db:
+            return redirect(url_for('login'))
+        else:
+            return redirect(url_for('main'))
+    return render_template('start.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -44,10 +56,8 @@ def login():
     return render_template('login.html')
 
 @app.route('/main')
+@login_required
 def main():
-    # Проверка авторизации
-    if 'user' not in session:
-        return redirect(url_for('login'))
     user_email = session['user']
     return f"Добро пожаловать, {user_email}! Вы вошли в систему."
 
