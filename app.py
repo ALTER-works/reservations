@@ -1,4 +1,3 @@
-# app.py
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from functools import wraps
 from datetime import datetime
@@ -101,9 +100,9 @@ def main():
                            floors=floors_db,
                            reservations=reservation_db)
 
-@app.route('/api/reservations', methods=['GET'])
+@app.route('/api/all-reservations', methods=['GET'])
 @login_required
-def api_reservations():
+def api_all_reservations():
     auditorie = request.args.get('auditorie')
     date_str = request.args.get('date')
 
@@ -124,6 +123,23 @@ def api_reservations():
             })
 
     return jsonify({'reservations': result})
+
+# Подгрузка данных по api (для <file_name>.js)
+@app.route('/api/users')
+@login_required
+def api_users():
+    return jsonify(users=list(users_db.keys()))
+
+@app.route('/api/floors')
+@login_required
+def api_floors():
+    return jsonify(floors=floors_db)
+
+@app.route('/api/reservations')
+@login_required
+def api_reservations():
+    # можно сделать с параметрами date, room, но для примера — просто все:
+    return jsonify(reservations=reservation_db)
 
 @app.route('/logout', methods=['POST'])
 @login_required
