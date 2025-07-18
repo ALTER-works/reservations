@@ -1,3 +1,4 @@
+/* Секция констант и предварительной подготовки */
 // Секции этажей, даты и аудиторий
 const sectionFloors = document.getElementById('section-floors');
 const sectionDate = document.getElementById('section-date');
@@ -22,6 +23,29 @@ const infoPanel = document.getElementById('info-panel');
 const reserveBtn = document.getElementById('reserve-btn');
 const logoutBtn = document.getElementById('logoutBtn');
 
+// Расписание на текущий год + 3 следующих
+const currentYear = new Date().getFullYear();
+for(let y = currentYear; y <= currentYear + 3; y++) {
+  const option = document.createElement('option');
+  option.value = y;
+  option.textContent = y;
+  yearSelect.appendChild(option);
+}
+
+const monthNames = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+monthNames.forEach((m,i) => {
+  const option = document.createElement('option');
+  option.value = i+1;
+  option.textContent = m;
+  monthSelect.appendChild(option);
+});
+
+sectionFloors.querySelector('.section-header').addEventListener('click', () => toggleSection(sectionFloors));
+sectionDate.querySelector('.section-header').addEventListener('click', () => toggleSection(sectionDate));
+sectionRooms.querySelector('.section-header').addEventListener('click', () => toggleSection(sectionRooms));
+
+
+/* Секция функций */
 // Асинхронная подгрузка данных (из app.py через API fetch)
 async function loadInitialData() {
   try {
@@ -50,23 +74,6 @@ async function loadInitialData() {
     console.error('Ошибка при загрузке начальных данных:', error);
   }
 }
-
-// Расписание на текущий год + 3 следующих
-const currentYear = new Date().getFullYear();
-for(let y = currentYear; y <= currentYear + 3; y++) {
-  const option = document.createElement('option');
-  option.value = y;
-  option.textContent = y;
-  yearSelect.appendChild(option);
-}
-
-const monthNames = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
-monthNames.forEach((m,i) => {
-  const option = document.createElement('option');
-  option.value = i+1;
-  option.textContent = m;
-  monthSelect.appendChild(option);
-});
 
 function daysInMonth(year, month) {
   return new Date(year, month, 0).getDate();
@@ -104,6 +111,7 @@ function fillRooms(floorKey) {
   });
 }
 
+// Подстановка чисел месяца в году (учитывая високосный)
 function updateDays() {
   const year = parseInt(yearSelect.value);
   const month = parseInt(monthSelect.value);
@@ -124,6 +132,7 @@ function updateDays() {
   daySelect.value = ''; // сброс
 }
 
+// Заполнение времени
 function fillTimeOptions() {
   timeSelect.innerHTML = '';
   for(let h=9; h<=20; h++) {
@@ -141,71 +150,14 @@ function toggleSection(section) {
   section.classList.toggle('open');
 }
 
-sectionFloors.querySelector('.section-header').addEventListener('click', () => toggleSection(sectionFloors));
-sectionDate.querySelector('.section-header').addEventListener('click', () => toggleSection(sectionDate));
-sectionRooms.querySelector('.section-header').addEventListener('click', () => toggleSection(sectionRooms));
-
-floorList.addEventListener('click', e => {
-  const li = e.target.closest('li');
-  if (!li || li.classList.contains('disabled')) return;
-
-  floorList.querySelectorAll('li').forEach(item => item.classList.remove('selected'));
-  li.classList.add('selected');
-
-  floorNum = li.dataset.floor;
-
-  fillRooms(floorNum);
-
-  sectionDate.classList.remove('disabled');
-  sectionRooms.classList.remove('disabled');
-
-  // sectionDate.classList.remove('open');
-  // sectionRooms.classList.remove('open');
-
-  yearSelect.disabled = false;
-  monthSelect.disabled = false;
-  daySelect.disabled = true;  // Заблокируем дни до выбора месяца и года
-  timeSelect.disabled = true;
-
-  yearSelect.value = '';
-  monthSelect.value = '';
-  daySelect.innerHTML = '';
-  timeSelect.innerHTML = '';
-
-  modelContainer.textContent = `Планировка этажа ${floorNum}`;
-
-  infoPanel.style.display = 'none';
-
-  roomList.querySelectorAll('li').forEach(item => item.classList.remove('selected'));
-
-  checkReserveBtnState();
-});
-
-yearSelect.addEventListener('change', () => {
-  updateDays();
-  daySelect.disabled = false;
-  checkReserveBtnState();
-});
-monthSelect.addEventListener('change', () => {
-  updateDays();
-  daySelect.disabled = false;
-  checkReserveBtnState();
-});
-daySelect.addEventListener('change', () => {
-  fillTimeOptions();
-  timeSelect.disabled = false;
-  checkReserveBtnState();
-});
-timeSelect.addEventListener('change', () => {
-  checkReserveBtnState();
-});
-
+// Перевод дат в минуты
 function timeToMinutes(t) {
   // "HH:MM" → количество минут от 00:00
   const [h, m] = t.split(':').map(Number);
   return h*60 + m;
 }
 
+// Отображение данных по комнате
 function updateRoomOccupancyPanel(roomId, year, month, day) {
   if (!roomId || !year || !month || !day) {
     infoPanel.style.display = 'none';
@@ -264,6 +216,119 @@ function updateRoomOccupancyPanel(roomId, year, month, day) {
     });
 }
 
+// Проверка, все ли данные введены для бронирования
+function checkReserveBtnState() {
+  const floorSelected = floorList.querySelector('li.selected') !== null;
+  const yearSelected = yearSelect.value !== '';
+  const monthSelected = monthSelect.value !== '';
+  const daySelected = daySelect.value !== '';
+  const timeSelected = timeSelect.value !== '';
+  const roomSelected = roomList.querySelector('li.selected') !== null;
+
+  reserveBtn.disabled = !(floorSelected && yearSelected && monthSelected && daySelected && timeSelected && roomSelected);
+}
+
+
+/* Секция обработок Ивентов */
+// Ивенты блоков
+floorList.addEventListener('click', e => {
+  const li = e.target.closest('li');
+  if (!li || li.classList.contains('disabled')) return;
+
+  floorList.querySelectorAll('li').forEach(item => item.classList.remove('selected'));
+  li.classList.add('selected');
+
+  floorNum = li.dataset.floor;
+
+  fillRooms(floorNum);
+
+  sectionDate.classList.remove('disabled');
+  sectionRooms.classList.remove('disabled');
+
+  yearSelect.disabled = false;
+  monthSelect.disabled = false;
+  daySelect.disabled = false;  // Заблокируем дни до выбора месяца и года
+  timeSelect.disabled = false;
+
+  modelContainer.textContent = `Планировка этажа ${floorNum}`;
+
+  infoPanel.style.display = 'none';
+
+  roomList.querySelectorAll('li').forEach(item => item.classList.remove('selected'));
+
+  checkReserveBtnState();
+});
+yearSelect.addEventListener('change', () => {
+  updateDays();
+  monthSelect.disabled = false;
+  checkReserveBtnState();
+
+  const li = roomList.querySelector('li.selected');
+  if (li) {
+    const roomId = li.dataset.room;
+    const year = yearSelect.value;
+    const month = monthSelect.value;
+    const day = daySelect.value;
+    if(year && month && day) {
+      updateRoomOccupancyPanel(roomId, year, month, day);
+    } else {
+      infoPanel.style.display = 'none';
+    }
+  }
+});
+
+monthSelect.addEventListener('change', () => {
+  updateDays();
+  daySelect.disabled = false;
+  checkReserveBtnState();
+
+  const li = roomList.querySelector('li.selected');
+  if (li) {
+    const roomId = li.dataset.room;
+    const year = yearSelect.value;
+    const month = monthSelect.value;
+    const day = daySelect.value;
+    if(year && month && day) {
+      updateRoomOccupancyPanel(roomId, year, month, day);
+    } else {
+      infoPanel.style.display = 'none';
+    }
+  }
+});
+
+daySelect.addEventListener('change', () => {
+  timeSelect.disabled = false;
+  checkReserveBtnState();
+
+  const li = roomList.querySelector('li.selected');
+  if (li) {
+    const roomId = li.dataset.room;
+    const year = yearSelect.value;
+    const month = monthSelect.value;
+    const day = daySelect.value;
+    if(year && month && day) {
+      updateRoomOccupancyPanel(roomId, year, month, day);
+    } else {
+      infoPanel.style.display = 'none';
+    }
+  }
+});
+timeSelect.addEventListener('change', () => {
+  checkReserveBtnState()
+
+  const li = roomList.querySelector('li.selected');
+  if (li) {
+    const roomId = li.dataset.room;
+    const year = yearSelect.value;
+    const month = monthSelect.value;
+    const day = daySelect.value;
+    if(year && month && day) {
+      updateRoomOccupancyPanel(roomId, year, month, day);
+    } else {
+      infoPanel.style.display = 'none';
+    }
+  }
+  });
 roomList.addEventListener('click', e => {
   const li = e.target.closest('li');
   if (!li) return;
@@ -285,17 +350,7 @@ roomList.addEventListener('click', e => {
   checkReserveBtnState();
 });
 
-function checkReserveBtnState() {
-  const floorSelected = floorList.querySelector('li.selected') !== null;
-  const yearSelected = yearSelect.value !== '';
-  const monthSelected = monthSelect.value !== '';
-  const daySelected = daySelect.value !== '';
-  const timeSelected = timeSelect.value !== '';
-  const roomSelected = roomList.querySelector('li.selected') !== null;
-
-  reserveBtn.disabled = !(floorSelected && yearSelected && monthSelected && daySelected && timeSelected && roomSelected);
-}
-
+// Ивенты кнопок
 reserveBtn.addEventListener('click', () => {
   const floor = floorList.querySelector('li.selected').dataset.floor;
   const room = roomList.querySelector('li.selected').dataset.room;
@@ -335,8 +390,6 @@ reserveBtn.addEventListener('click', () => {
     console.error(err);
   });
 });
-
-
 logoutBtn.addEventListener('click', () => {
   fetch(window.appConfig.mainUrl, {
     method: 'POST',
@@ -366,8 +419,13 @@ logoutBtn.addEventListener('click', () => {
 });
 
 
-// Инициализация
+/* Инициализация */
 function initApp() {
+    yearSelect.value = '';
+    monthSelect.value = '';
+    daySelect.innerHTML = '';
+    timeSelect.innerHTML = '';
+    fillTimeOptions();
     fillFloors();
     checkReserveBtnState();
 };

@@ -3,79 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <title>Вход / Регистрация</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f7f7f7;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        #login-container {
-            background: white;
-            padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-            width: 350px;
-        }
-        h2 {
-            margin-bottom: 25px;
-            text-align: center;
-            color: #333;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #555;
-        }
-        input[type="email"], input[type="password"] {
-            width: 100%;
-            padding: 12px 15px;
-            margin-bottom: 20px;
-            border-radius: 10px;
-            border: 1px solid #ccc;
-            font-size: 1em;
-            outline: none;
-            transition: border-color 0.3s ease;
-        }
-        input[type="email"]:focus, input[type="password"]:focus {
-            border-color: #007bff;
-        }
-        .btn-group {
-            display: flex;
-            justify-content: space-between;
-        }
-        button {
-            flex: 1;
-            padding: 12px 0;
-            font-size: 1em;
-            border-radius: 25px;
-            border: none;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            color: white;
-        }
-        button:first-child {
-            background-color: #28a745;
-            margin-right: 15px;
-        }
-        button:first-child:hover {
-            background-color: #1e7e34;
-        }
-        button:last-child {
-            background-color: #007bff;
-        }
-        button:last-child:hover {
-            background-color: #0056b3;
-        }
-        .error {
-            color: red;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
 </head>
 <body>
     <div id="login-container">
@@ -96,5 +24,17 @@
             </div>
         </form>
     </div>
+    <div id="flash-container">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+    </div>
+
+    <script src="{{ url_for('static', filename='js/login.js') }}"></script>
 </body>
+
 </html>

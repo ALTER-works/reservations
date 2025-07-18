@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Выбор этажа и бронирование</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 </head>
 <body>
 
@@ -80,7 +80,6 @@
     csrfToken: "{{ csrf_token() if csrf_token else '' }}"
   };
 </script>
-  <script src="{{ url_for('static', filename='main.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
-

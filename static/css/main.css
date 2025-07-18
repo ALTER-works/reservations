@@ -165,6 +165,7 @@ ul li.selected {
   position: relative;
   transition: background-color 0.3s ease;
 }
+/* Панель информации об аудитории */
 #info-panel {
   width: 300px;
   background: #1e1e1e;

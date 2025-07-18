@@ -6,15 +6,19 @@ from db import users_db, floors_db, reservation_db, add_reservation, is_room_bus
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # для сессий
 
+# Вспомогательные функции:
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         user_email = session.get('user')
         if not user_email or user_email not in users_db:
+            flash('Пожалуйста, войдите или зарегистрируйтесь, чтобы получить доступ к этой странице', 'warning')
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
 
+
+# Основные переходы/страницы
 @app.route('/', methods=['GET', 'POST'])
 def main_page():
     if request.method == 'POST':
@@ -50,6 +54,17 @@ def login():
                 return render_template('login.html', error=error)
 
     return render_template('login.html')
+
+@app.route('/logout', methods=['POST'])
+@login_required
+def logout():
+    session.pop('user', None)
+    return redirect(url_for('main_page'))
+
+@app.errorhandler(404)
+@login_required
+def page_not_found(error):
+    return render_template('404.html'), 404
 
 @app.route('/main', methods=['GET', 'POST'])
 @login_required
@@ -100,6 +115,7 @@ def main():
                            floors=floors_db,
                            reservations=reservation_db)
 
+# Подгрузка данных по api (в окно резерваций)
 @app.route('/api/all-reservations', methods=['GET'])
 @login_required
 def api_all_reservations():
@@ -140,12 +156,6 @@ def api_floors():
 def api_reservations():
     # можно сделать с параметрами date, room, но для примера — просто все:
     return jsonify(reservations=reservation_db)
-
-@app.route('/logout', methods=['POST'])
-@login_required
-def logout():
-    session.pop('user', None)
-    return redirect(url_for('main_page'))
 
 if __name__ == '__main__':
     app.run(debug=True)
