@@ -17,6 +17,7 @@ body, html {
   padding: 0 20px;
   color: #eee;
   user-select: none;
+  border-bottom: 1px solid #444;
 }
 #avatar {
   width: 32px;
@@ -28,7 +29,6 @@ body, html {
 }
 #top-bar button {
   background: #2c2c2c;
-  border: none;
   color: #eee;
   padding: 6px 12px;
   margin-left: 10px;
@@ -54,7 +54,7 @@ body, html {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  overflow-y: auto;
+  overflow-y: hidden;
   user-select: none;
 }
 .section {
@@ -86,7 +86,7 @@ body, html {
 }
 .section.open .section-content {
   max-height: 400px;
-  overflow-y: auto;
+  overflow-y: hidden;
 }
 ul {
   list-style: none;
@@ -165,29 +165,139 @@ ul li.selected {
   position: relative;
   transition: background-color 0.3s ease;
 }
+
+
 /* Панель информации об аудитории */
 #info-panel {
-  width: 300px;
-  background: #1e1e1e;
-  padding: 20px;
-  box-sizing: border-box;
-  overflow-y: auto;
-  color: #eee;
-  font-size: 0.9em;
-  user-select: none;
-  display: none;
-  border-left: 1px solid #444;
+    width: 380px;
+    background: #1e1e1e;
+    padding: 15px;
+    box-sizing: border-box;
+    color: #eee;
+    font-size: 0.9em;
+    user-select: none;
+    display: none;
+    position: relative;
+    padding-top: 0;
+    height: 100%; /* Чтобы занять всю высоту по высоте панели */
 }
-#info-panel h3 {
-  margin-top: 0;
-  margin-bottom: 10px;
-  font-weight: bold;
-  border-bottom: 1px solid #444;
-  padding-bottom: 5px;
+.calendar-container {
+    display: flex;
+    position: relative;
+    height: 80vh; /* 24 часа, по 60px на час */
+    border: 1px solid #444;
+    background: #2c2c2c;
+    user-select: none;
+    margin-top: 15px;
+    overflow-y: auto; /* Включаем вертикальный скролл */
 }
-#info-panel p {
-  margin: 5px 0;
+
+
+/* Цвет самой полосы прокрутки */
+.calendar-container::-webkit-scrollbar {
+  width: 12px; /* ширина полосы */
+  background: #2c2c2c;
+  border-left: 1px solid #444; /* отступы вокруг */
 }
+
+/* Ползунок прокрутки */
+.calendar-container::-webkit-scrollbar-thumb {
+  background-color: #888;    /* цвет полосы прокрутки */
+  border-radius: 6px;        /* скругление */
+  border: 1px solid #2c2c2c; /* отступы вокруг */
+}
+
+/* Ховер на ползунок */
+.calendar-container::-webkit-scrollbar-thumb:hover {
+  background-color: #555;
+}
+
+/* Временная шкала */
+.calendar-time-gutter {
+    display: flex;
+    flex-direction: column;
+    width: 60px;
+    border-right: 1px solid #444;
+    color: #888;
+    font-size: 0.75em;
+    box-sizing: border-box;
+    text-align: up;
+    flex-shrink: 0;
+    min-height: 1440px; /* например, 24 часа * 60px = 1440px, можно менять */
+}
+.calendar-time-gutter div {
+    height: 59px;
+    line-height: 60px;
+    position: relative;
+    margin: 0;
+    padding: 0 5px 0 0;
+    border-top: 1px solid #3a3a3a;
+}
+.calendar-time-gutter div:first-child {
+    border-top: none;
+}
+/* Область событий */
+.calendar-events {
+    flex: 1;
+    position: relative;
+    background-image: linear-gradient(to bottom, #3a3a3a 1px, transparent 1px);
+    background-size: 150% 60px;
+    min-height: 1440px; /* например, 24 часа * 60px = 1440px, можно менять */
+}
+/* События расположены по высоте и сверху, без смещений по горизонтали */
+.calendar-event {
+    position: absolute;
+    left: 0;
+    right: 0;
+    border-radius: 4px;
+    padding: 5px 8px;
+    color: #fff;
+    font-size: 0.85em;
+    cursor: pointer;
+    box-sizing: border-box;
+    user-select: text;
+    background: #4a90e2;
+    border: 1px solid #357ABD;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.6);
+    transition: background 0.2s ease;
+    z-index: 1;
+}
+.calendar-event:hover {
+    background: #6aa0ff;
+}
+
+
+/* Оверлей */
+#overlay {
+    position: fixed;
+    top: 0; left:0; right:0; bottom:0;
+    background: rgba(0,0,0,0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+#overlay .content {
+    background: #2c2c2c;
+    padding: 20px;
+    color: #eee;
+    max-width: 300px;
+    border-radius: 6px;
+    box-shadow: 0 0 10px #000;
+    user-select: text;
+}
+#overlay .close-btn {
+    margin-top: 15px;
+    background: #e55353;
+    border: none;
+    padding: 8px 15px;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+
 /* Кнопка бронирования */
 #reserve-btn {
   margin-top: 10px;
@@ -200,8 +310,44 @@ ul li.selected {
   cursor: pointer;
   transition: background-color 0.3s ease;
   user-select: none;
+  display: block; /* Чтобы кнопка занимала всю ширину */
+  width: 100%;
 }
 #reserve-btn:disabled {
   background-color: #555;
   cursor: not-allowed;
 }
+
+/* Кнопка вывода списка дат */
+
+
+/* Скроллбар для #info-panel */
+#info-panel::-webkit-scrollbar {
+  width: 8px;
+}
+#info-panel::-webkit-scrollbar-track {
+  background: #242229;
+}
+#info-panel::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 4px;
+}
+#info-panel::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Скроллбар для .calendar-events */
+.calendar-events::-webkit-scrollbar {
+  width: 8px;
+}
+.calendar-events::-webkit-scrollbar-track {
+  background: #2c2c2c;
+}
+.calendar-events::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 4px;
+}
+.calendar-events::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+

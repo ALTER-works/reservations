@@ -135,10 +135,10 @@ function updateDays() {
 // Заполнение времени
 function fillTimeOptions() {
   timeSelect.innerHTML = '';
-  for(let h=9; h<=20; h++) {
+  for(let h=9; h<=23; h++) {
     const option = document.createElement('option');
-    option.value = `${h}:00-${h+2}:00`;
-    option.textContent = `${h}:00 - ${h+2}:00`;
+    option.value = `${h}:00-${h+1}:00`;
+    option.textContent = `${h}:00 - ${h+1}:00`;
     timeSelect.appendChild(option);
   }
   timeSelect.disabled = false;
@@ -159,59 +159,84 @@ function timeToMinutes(t) {
 
 // Отображение данных по комнате
 function updateRoomOccupancyPanel(roomId, year, month, day) {
+
   if (!roomId || !year || !month || !day) {
     infoPanel.style.display = 'none';
     return;
   }
-  const date = `${year}-${month.toString().padStart(2,'0')}-${day.toString().padStart(2,'0')}`;
-  fetch(`/api/all-reservations?auditorie=${encodeURIComponent(roomId)}&date=${date}`)
+
+  const dateObj = new Date(year, month - 1, day);
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  const formattedDate = dateObj.toLocaleDateString('ru-RU', options);
+
+  const dateParam = `${year}-${month.toString().padStart(2,'0')}-${day.toString().padStart(2,'0')}`;
+
+  infoPanel.innerHTML = `
+    <h3>${roomId}</h3>
+    <div class="subtitle">${formattedDate}</div>
+    <div class="calendar-container">
+        <div class="calendar-time-gutter"></div>
+        <div class="calendar-events"></div>
+    </div>
+  `;
+  infoPanel.style.display = 'block';
+
+  const timeGutter = infoPanel.querySelector('.calendar-time-gutter');
+  const calendarEventsContainer = infoPanel.querySelector('.calendar-events');
+
+  // Заполняем временную шкалу с 0:00 до 23:00
+  timeGutter.innerHTML = '';
+  for (let h = 0; h < 24; h++) {
+    timeGutter.innerHTML += `<div>${h.toString().padStart(2, '0')}:00</div>`;
+  }
+
+  const pixelsPerHour = 60;
+  const startHour = 0;
+
+  fetch(`/api/all-reservations?auditorie=${encodeURIComponent(roomId)}&date=${dateParam}`)
     .then(res => res.json())
     .then(data => {
       if (data.error) {
-        infoPanel.innerHTML = `<p style="color:red;">Ошибка: ${data.error}</p>`;
-        infoPanel.style.display = 'block';
+        calendarEventsContainer.innerHTML = `<p style="color:red; text-align:center; margin-top:20px;">Ошибка: ${data.error}</p>`;
         return;
       }
-      const reservations = data.reservations;
-      const intervals = [];
-      // Интервалы с шагом 1 час от 9:00 до 22:00
-      for(let h=9; h<=22; h++) {
-        intervals.push({
-          start: `${h.toString().padStart(2,'0')}:00`,
-          end: (h===22 ? '22:00' : `${(h+1).toString().padStart(2,'0')}:00`),
-          busy: false
-        });
-      }
 
-      // Функция проверки пересечения между интервалами [start, end]
-      function intervalsOverlap(start1, end1, start2, end2) {
-        return start1 < end2 && start2 < end1;
+      const reservations = data.reservations;
+      calendarEventsContainer.innerHTML = '';
+
+      if (reservations.length === 0) {
+        calendarEventsContainer.innerHTML = `<p style="color:#bbb; text-align:center; margin-top:20px;">На эту дату бронирований нет.</p>`;
+        return;
       }
 
       reservations.forEach(r => {
-        const resStart = timeToMinutes(r.start);
-        const resEnd = timeToMinutes(r.end);
-        intervals.forEach(i => {
-          const intStart = timeToMinutes(i.start);
-          const intEnd = (i.end === '22:00') ? 24*60 : timeToMinutes(i.end);
-          if (intervalsOverlap(resStart, resEnd, intStart, intEnd)) {
-            i.busy = true;
-          }
-        });
+        const startTimeMinutes = timeToMinutes(r.start);
+        const endTimeMinutes = timeToMinutes(r.end);
+
+        // Ограничим отображение в пределах 0:00 - 24:00
+        const topPositionMinutes = Math.max(0, startTimeMinutes - (startHour * 60));
+        const durationMinutes = Math.min(24 * 60, endTimeMinutes) - startTimeMinutes;
+
+        const topPx = (topPositionMinutes / 60) * pixelsPerHour;
+        const heightPx = (durationMinutes / 60) * pixelsPerHour;
+
+        if (heightPx <= 0) return; // Если событие вне диапазона, пропускаем
+
+        const eventDiv = document.createElement('div');
+        eventDiv.className = 'calendar-event';
+        eventDiv.style.top = `${topPx}px`;
+        eventDiv.style.height = `${heightPx}px`;
+        eventDiv.title = `Забронировано: ${r.start} - ${r.end}\nКто: ${r.who}\n${r.description ? 'Описание: ' + r.description : ''}`;
+        eventDiv.innerHTML = `
+          <strong>${r.start} – ${r.end}</strong><br>
+          ${r.who}
+        `;
+        calendarEventsContainer.appendChild(eventDiv);
       });
 
-      let html = `<h3>Информация по аудитории ${roomId} на ${date}</h3>`;
-      html += `<p>Занятость с 9:00 до 22:00:</p><div style="max-height: 300px; overflow-y: auto; border: 1px solid #444; padding: 10px; background: #2c2c2c;">`;
-      intervals.forEach(i => {
-        html += `<p>${i.start} - ${i.end}: ${i.busy ? '<b style="color:#e55353;">Занято</b>' : '<b style="color:#53e58f;">Свободно</b>'}</p>`;
-      });
-      html += `</div>`;
-      infoPanel.innerHTML = html;
-      infoPanel.style.display = 'block';
     })
     .catch(err => {
-      infoPanel.innerHTML = `<p style="color:red;">Ошибка при загрузке данных</p>`;
-      infoPanel.style.display = 'block';
+      calendarEventsContainer.innerHTML = `<p style="color:red; text-align:center; margin-top:20px;">Ошибка при загрузке данных</p>`;
       console.error(err);
     });
 }
@@ -276,7 +301,6 @@ yearSelect.addEventListener('change', () => {
     }
   }
 });
-
 monthSelect.addEventListener('change', () => {
   updateDays();
   daySelect.disabled = false;
@@ -295,7 +319,6 @@ monthSelect.addEventListener('change', () => {
     }
   }
 });
-
 daySelect.addEventListener('change', () => {
   timeSelect.disabled = false;
   checkReserveBtnState();
@@ -353,7 +376,7 @@ roomList.addEventListener('click', e => {
 // Ивенты кнопок
 reserveBtn.addEventListener('click', () => {
   const floor = floorList.querySelector('li.selected').dataset.floor;
-  const room = roomList.querySelector('li.selected').dataset.room;
+  const roomId = roomList.querySelector('li.selected').dataset.room;
   const year = yearSelect.value;
   const month = monthSelect.value.padStart(2, '0');
   const day = daySelect.value.padStart(2, '0');
@@ -371,7 +394,7 @@ reserveBtn.addEventListener('click', () => {
     body: JSON.stringify({
       action: 'book',
       floor: floor,
-      room_id: room,
+      room_id: roomId,
       start_time: startTime,
       end_time: endTime
     })
@@ -380,7 +403,7 @@ reserveBtn.addEventListener('click', () => {
   .then(data => {
     if (data.success) {
       alert('Бронирование успешно создано');
-      location.reload();
+      updateRoomOccupancyPanel(roomId, year, month, day);
     } else {
       alert('Ошибка: ' + data.error);
     }
@@ -417,7 +440,6 @@ logoutBtn.addEventListener('click', () => {
     alert('Произошла ошибка при выходе.');
   });
 });
-
 
 /* Инициализация */
 function initApp() {

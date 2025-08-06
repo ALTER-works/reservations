@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# IDE (e.g., PyCharm)
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# OS generated files
+.DS_Store
+.Trashes
+Thumbs.db
+
+# Virtual Environment
+# If you use a virtual environment that's not named 'venv' or 'env', add it here.
+# For example, if your venv is in 'my_project_env', add:
+# my_project_env/

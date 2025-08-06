@@ -79,6 +79,34 @@ reservation_db = {
         'start_time': datetime.fromisoformat('2025-07-16T13:00:00'),
         'end_time': datetime.fromisoformat('2025-07-16T15:00:00'),
     },
+    'id10': {
+        'user_email': 'user1@example.com',
+        'floor': 'floor_1',
+        'auditorie': 's101',
+        'start_time': datetime.fromisoformat('2025-08-15T11:00:00'),
+        'end_time': datetime.fromisoformat('2025-08-15T13:00:00'),
+    },
+    'id11': {
+        'user_email': 'user1@example.com',
+        'floor': 'floor_1',
+        'auditorie': 's101',
+        'start_time': datetime.fromisoformat('2025-09-15T11:00:00'),
+        'end_time': datetime.fromisoformat('2025-09-15T13:00:00'),
+    },
+    'id12': {
+        'user_email': 'user1@example.com',
+        'floor': 'floor_1',
+        'auditorie': 's101',
+        'start_time': datetime.fromisoformat('2025-10-15T11:00:00'),
+        'end_time': datetime.fromisoformat('2025-10-15T13:00:00'),
+    },
+    'id13': {
+        'user_email': 'user1@example.com',
+        'floor': 'floor_1',
+        'auditorie': 's102',
+        'start_time': datetime.fromisoformat('2025-07-15T15:30:00'),
+        'end_time': datetime.fromisoformat('2025-07-15T17:00:00'),
+    },
 }
 
 def add_reservation(user_email, floor, auditorie, start_time, end_time):
