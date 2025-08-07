@@ -44,8 +44,24 @@
             <select id="day-select" disabled></select>
           </div>
           <div class="subsection">
-            <label for="time-select">Время</label>
-            <select id="time-select" disabled></select>
+            <label for="time-from">Время</label>
+            <div style="display: flex; gap: 10px;">
+              <div class="custom-combobox">
+                <input id="time-from" placeholder="09:00" autocomplete="off"/>
+                <ul class="combo-options hidden"></ul>
+              </div>
+              <label style="
+                padding: 0 8px;
+                user-select: none;
+                font-size: 24px;
+                font-weight: 100;
+                line-height: 1;
+              ">–</label>
+              <div class="custom-combobox">
+                <input id="time-to" placeholder="09:00" autocomplete="off"/>
+                <ul class="combo-options hidden"></ul>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -74,19 +90,13 @@
       <!-- Здесь будет информация по аудитории (см. main.js) -->
     </div>
 
-    <div id="overlay" role="dialog" aria-modal="true" tabindex="-1">
-      <div class="content">
-        <div id="overlay-content"></div>
-        <button class="close-btn" onclick="closeOverlay()">Закрыть</button>
-      </div>
-    </div>
   </div>
   <script>
   window.appConfig = {
     mainUrl: "{{ url_for('main') }}",
     csrfToken: "{{ csrf_token() if csrf_token else '' }}"
   };
-</script>
+  </script>
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

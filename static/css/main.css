@@ -1,4 +1,4 @@
-/* Ваши стили (без изменений) */
+/* Стили страницы */
 body, html {
   margin: 0; padding: 0; height: 100%;
   font-family: Arial, sans-serif;
@@ -46,6 +46,7 @@ body, html {
   overflow: hidden;
   height: calc(100vh - 50px);
 }
+
 #left-panel {
   width: 300px;
   background: #1e1e1e;
@@ -137,6 +138,53 @@ ul li.selected {
   color: #666;
   cursor: not-allowed;
 }
+/* Отрисовка кастомного списка с вводом */
+.custom-combobox {
+  position: relative;
+  width: 120px;
+  overflow: visible;
+}
+.custom-combobox input {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 14px;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background: #2c2c2c;
+  color: #eee;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+.custom-combobox ul.combo-options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 150px;
+  overflow-y: auto;
+  background: #2c2c2c;
+  border: 1px solid #444;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  z-index: 4;
+}
+.combo-options.hidden {
+  display: none;
+}
+.combo-options li {
+  padding: 8px 10px;
+  cursor: pointer;
+  user-select: none;
+}
+.combo-options li:hover,
+.combo-options li.selected {
+  background-color: #555;
+}
+
+
 #right-panel {
   flex: 1;
   background: #242229;
@@ -151,6 +199,7 @@ ul li.selected {
   border-left: 1px solid #444;
   border-right: 1px solid #444;
 }
+
 #model-container {
   width: 90%;
   aspect-ratio: 1 / 1;
@@ -179,7 +228,7 @@ ul li.selected {
     display: none;
     position: relative;
     padding-top: 0;
-    height: 100%; /* Чтобы занять всю высоту по высоте панели */
+    height: 100%;
 }
 .calendar-container {
     display: flex;
@@ -189,7 +238,7 @@ ul li.selected {
     background: #2c2c2c;
     user-select: none;
     margin-top: 15px;
-    overflow-y: auto; /* Включаем вертикальный скролл */
+    overflow-y: auto;
 }
 
 
@@ -197,7 +246,7 @@ ul li.selected {
 .calendar-container::-webkit-scrollbar {
   width: 12px; /* ширина полосы */
   background: #2c2c2c;
-  border-left: 1px solid #444; /* отступы вокруг */
+  border-left: 1px solid #444;
 }
 
 /* Ползунок прокрутки */
@@ -221,28 +270,28 @@ ul li.selected {
     color: #888;
     font-size: 0.75em;
     box-sizing: border-box;
-    text-align: up;
     flex-shrink: 0;
-    min-height: 1440px; /* например, 24 часа * 60px = 1440px, можно менять */
+    min-height: 1440px;
 }
 .calendar-time-gutter div {
     height: 59px;
     line-height: 60px;
-    position: relative;
     margin: 0;
-    padding: 0 5px 0 0;
+    text-align: center;
     border-top: 1px solid #3a3a3a;
 }
 .calendar-time-gutter div:first-child {
     border-top: none;
+    padding-top: 30px; /* для корректного отображения временных интервалов */
 }
+
 /* Область событий */
 .calendar-events {
     flex: 1;
     position: relative;
     background-image: linear-gradient(to bottom, #3a3a3a 1px, transparent 1px);
     background-size: 150% 60px;
-    min-height: 1440px; /* например, 24 часа * 60px = 1440px, можно менять */
+    min-height: 1440px;
 }
 /* События расположены по высоте и сверху, без смещений по горизонтали */
 .calendar-event {
@@ -268,33 +317,8 @@ ul li.selected {
 
 
 /* Оверлей */
-#overlay {
-    position: fixed;
-    top: 0; left:0; right:0; bottom:0;
-    background: rgba(0,0,0,0.7);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-}
-#overlay .content {
-    background: #2c2c2c;
-    padding: 20px;
-    color: #eee;
-    max-width: 300px;
-    border-radius: 6px;
-    box-shadow: 0 0 10px #000;
-    user-select: text;
-}
-#overlay .close-btn {
-    margin-top: 15px;
-    background: #e55353;
-    border: none;
-    padding: 8px 15px;
-    color: white;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
+#overlay_event {
+    /* тут будет оверлей пли клике на ячейку */
 }
 
 
