@@ -1,4 +1,4 @@
-/* Стили страницы */
+/* Стиль страницы */
 body, html {
   margin: 0; padding: 0; height: 100%;
   font-family: Arial, sans-serif;
@@ -9,6 +9,8 @@ body, html {
   background-color: #121212;
   color: #eee;
 }
+
+/* Стиль топбара */
 #top-bar {
   height: 50px;
   background: #1e1e1e;
@@ -47,17 +49,58 @@ body, html {
   height: calc(100vh - 50px);
 }
 
-#left-panel {
-  width: 300px;
+
+/* Левая панель */
+#add-info-panel {
+  width: 26%;
   background: #1e1e1e;
   padding: 20px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  overflow-y: hidden;
+  overflow-y: scroll;
   user-select: none;
 }
+
+/* Стиль для области ввода имени */
+.add-info-input {
+  width: 100%;
+  padding: 10px 10px;
+  font-size: 14px;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background: #2c2c2c;
+  color: #eee;
+  box-sizing: border-box;
+  cursor: text;
+  user-select: text;
+  outline: none
+  transition: border-color 0.2s ease;
+}
+.add-info-input::placeholder {
+  color: #888;
+  user-select: none;
+}
+.add-info-input:focus {
+  border-color: #666;
+  background: #3a3a3a;
+}
+/* Заголовок ("Новое событие") — в том же стиле, но в 2 раза больше */
+.input-header-low {
+  font-size: 14px;
+  color: #aaa;
+  margin-bottom: 6px;       /* МАЛЕНЬКИЙ отступ между лейблом и инпутом */
+  user-select: none;
+  font-family: inherit;
+}
+.field-block {
+  margin-bottom: 22px;      /* Расстояние между блоками (парами) */
+  display: flex;
+  flex-direction: column;   /* В одну колонку: label сверху, input снизу */
+}
+
+/* Оющий стиль для секций-списков */
 .section {
   border: 1px solid #444;
   border-radius: 8px;
@@ -111,8 +154,8 @@ ul li.selected {
   background: #0056b3;
   color: white;
 }
+/* Стиль для внутренней части секций-списков */
 .subsection {
-  border-top: 1px solid #444;
   padding: 10px 15px;
 }
 .subsection label {
@@ -138,7 +181,7 @@ ul li.selected {
   color: #666;
   cursor: not-allowed;
 }
-/* Отрисовка кастомного списка с вводом */
+/* Стиль кастомного списка с вводом для раздела "Время"*/
 .custom-combobox {
   position: relative;
   width: 120px;
@@ -155,11 +198,8 @@ ul li.selected {
   box-sizing: border-box;
   cursor: pointer;
 }
-.custom-combobox ul.combo-options {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
+.combo-options {
+  position: absolute; /* обязательно абсолютное для свободного позиционирования */
   max-height: 150px;
   overflow-y: auto;
   background: #2c2c2c;
@@ -169,7 +209,9 @@ ul li.selected {
   margin: 0;
   padding: 0;
   list-style: none;
-  z-index: 4;
+  z-index: 1000; /* выше, чем у других элементов */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  user-select: none;
 }
 .combo-options.hidden {
   display: none;
@@ -178,6 +220,9 @@ ul li.selected {
   padding: 8px 10px;
   cursor: pointer;
   user-select: none;
+  border-radius: 0;
+  line-height: 1.2em;
+  white-space: nowrap; /* чтобы текст не переносился */
 }
 .combo-options li:hover,
 .combo-options li.selected {
@@ -185,7 +230,8 @@ ul li.selected {
 }
 
 
-#right-panel {
+/* Стиль средней панели (оно же изображение/модль этажа) */
+#floor-image {
   flex: 1;
   background: #242229;
   position: relative;
@@ -216,8 +262,9 @@ ul li.selected {
 }
 
 
-/* Панель информации об аудитории */
+/* Панель информации об аудитории/Правая панель */
 #info-panel {
+    width: 26%;
     width: 380px;
     background: #1e1e1e;
     padding: 15px;
@@ -243,21 +290,21 @@ ul li.selected {
 
 
 /* Цвет самой полосы прокрутки */
-.calendar-container::-webkit-scrollbar {
-  width: 12px; /* ширина полосы */
+::-webkit-scrollbar {
+  width: 12px;
   background: #2c2c2c;
   border-left: 1px solid #444;
 }
 
 /* Ползунок прокрутки */
-.calendar-container::-webkit-scrollbar-thumb {
-  background-color: #888;    /* цвет полосы прокрутки */
-  border-radius: 6px;        /* скругление */
-  border: 1px solid #2c2c2c; /* отступы вокруг */
+::-webkit-scrollbar-thumb {
+  background-color: #888;
+  border-radius: 6px;
+  border: 1px solid #2c2c2c;
 }
 
 /* Ховер на ползунок */
-.calendar-container::-webkit-scrollbar-thumb:hover {
+::-webkit-scrollbar-thumb:hover {
   background-color: #555;
 }
 

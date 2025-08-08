@@ -16,8 +16,25 @@
   </div>
 
   <div id="main-container">
-    <div id="left-panel">
+    <div id="add-info-panel">
+      <label class="input-header">Новое событие</label>
+      <!-- Название -->
+      <div class="field-block">
+        <label class="input-header-low" for="event-name">Название</label>
+        <input id="event-name" class="add-info-input" placeholder="Введите название события" autocomplete="off" />
+      </div>
+      <!-- Участники -->
+      <div class="field-block">
+        <label class="input-header-low" for="event-participants">Участники</label>
+        <input id="event-participants" class="add-info-input" placeholder="Введите участников" autocomplete="off" />
+      </div>
+      <!-- Описание -->
+      <div class="field-block">
+        <label class="input-header-low" for="event-description">Описание</label>
+        <input id="event-description" class="add-info-input" placeholder="Введите описание" autocomplete="off" />
+      </div>
       <!-- Этажи -->
+      <label class="input-header-low">Этаж</label>
       <div class="section" id="section-floors">
         <div class="section-header">Этажи <span class="arrow">▼</span></div>
         <div class="section-content">
@@ -28,6 +45,7 @@
       </div>
 
       <!-- Дата -->
+      <label class="input-header-low">Дата</label>
       <div class="section disabled" id="section-date">
         <div class="section-header">Дата <span class="arrow">▼</span></div>
         <div class="section-content">
@@ -48,7 +66,6 @@
             <div style="display: flex; gap: 10px;">
               <div class="custom-combobox">
                 <input id="time-from" placeholder="09:00" autocomplete="off"/>
-                <ul class="combo-options hidden"></ul>
               </div>
               <label style="
                 padding: 0 8px;
@@ -59,14 +76,16 @@
               ">–</label>
               <div class="custom-combobox">
                 <input id="time-to" placeholder="09:00" autocomplete="off"/>
-                <ul class="combo-options hidden"></ul>
               </div>
             </div>
           </div>
         </div>
       </div>
+      <ul class="combo-options hidden" data-for="time-from" style="position: absolute; z-index: 1000;"></ul>
+      <ul class="combo-options hidden" data-for="time-to" style="position: absolute; z-index: 1000;"></ul>
 
       <!-- Аудитории -->
+      <label class="input-header-low">Аудитория</label>
       <div class="section disabled" id="section-rooms">
         <div class="section-header">Аудитории <span class="arrow">▼</span></div>
         <div class="section-content">
@@ -80,7 +99,7 @@
       <button id="reserve-btn" disabled>Забронировать</button>
     </div>
 
-    <div id="right-panel">
+    <div id="floor-image">
       <div id="model-container">
         Выберите этаж слева, чтобы увидеть планировку
       </div>

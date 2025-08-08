@@ -9,13 +9,20 @@ const floorList = document.getElementById('floor-list');
 const roomList = document.getElementById('room-list');
 let floorNum; // константа для формирования этажа + отрисовки комнат
 
-// Переменные даты и времени
+// Константы даты и времени
 const yearSelect = document.getElementById('year-select');
 const monthSelect = document.getElementById('month-select');
 const daySelect = document.getElementById('day-select');
 const timeSelectFrom = document.getElementById('time-from');
 const timeSelectTo = document.getElementById('time-to');
 let isDateSectionOpened = false; // константа для нормального отображения дней*
+const comboOptionsList = document.querySelectorAll('.combo-options');
+const sectionLeftAdd = document.getElementById('add-info-panel');
+
+// Константы вводимых значений
+const eventName = document.getElementById('event-name');
+const eventParticipants = document.getElementById('event-participants');
+const eventDescription = document.getElementById('event-description');
 
 // Макет этажа + информация по комнате
 const modelContainer = document.getElementById('model-container');
@@ -141,7 +148,7 @@ function updateDays() {
   daySelect.value = ''; // сброс
 }
 
-// Заполнение времени
+// Заполнение списка времени с фильтром
 function fillTimeOptionsList(ulElement, filter = '') {
   ulElement.innerHTML = '';
   const times = [];
@@ -150,18 +157,22 @@ function fillTimeOptionsList(ulElement, filter = '') {
     times.push(`${hourStr}:00`);
     times.push(`${hourStr}:30`);
   }
-  const filteredTimes = times.filter(t => t.includes(filter));
+
+  const filteredTimes = times;
+
+  const inputId = ulElement.getAttribute('data-for');
+  const input = document.getElementById(inputId);
+
   filteredTimes.forEach(time => {
     const li = document.createElement('li');
     li.textContent = time;
-    li.tabIndex = 0; // чтобы элемент можно было выделять клавиатурой (опционно)
+    li.tabIndex = 0; // чтобы элемент был фокусируемым
 
     li.addEventListener('click', () => {
-      const input = ulElement.previousElementSibling;
       input.value = time;
       ulElement.classList.add('hidden');
-      // Тут можно добавить вызов вашей проверки или обновления интерфейса:
       checkReserveBtnState?.();
+      input.focus(); // вернуть фокус на инпут после выбора, если нужно
     });
 
     ulElement.appendChild(li);
@@ -175,29 +186,59 @@ function fillTimeOptionsList(ulElement, filter = '') {
     ulElement.appendChild(li);
   }
 }
-// Кастомная реализация списка (с возможностью ввода)
+
+// Функция динамического позиционирования выпадающего списка
+function positionDropdown(input, ul) {
+  const rect = input.getBoundingClientRect();
+  ul.style.position = 'absolute';
+  ul.style.top = rect.bottom + window.scrollY + 'px';
+  ul.style.left = rect.left + window.scrollX + 'px';
+  ul.style.width = rect.width + 'px';
+  ul.style.zIndex = 1000;
+}
+
+// Установка кастомного комбо-бокса на инпут
 function setupCustomComboBox(input) {
-  const ul = input.nextElementSibling;
+  const ul = document.querySelector(`.combo-options[data-for="${input.id}"]`);
+  if (!ul) {
+    console.warn(`No combo-options found for input with id="${input.id}"`);
+    return;
+  }
 
   input.addEventListener('focus', () => {
     fillTimeOptionsList(ul, input.value);
+    positionDropdown(input, ul);
     ul.classList.remove('hidden');
   });
 
   input.addEventListener('input', () => {
     fillTimeOptionsList(ul, input.value);
+    positionDropdown(input, ul);
     ul.classList.remove('hidden');
   });
 
   input.addEventListener('blur', () => {
-    // Нужно подождать, чтобы событие click по элементу списка успело сработать
+    // Таймаут нужен, чтобы не скрывать список раньше, чем сработает клик по варианту из списка
     setTimeout(() => {
       ul.classList.add('hidden');
     }, 150);
   });
+
+  // Обновление позиции списка при скролле и ресайзе, если он показан
+  window.addEventListener('scroll', () => {
+    if (!ul.classList.contains('hidden')) {
+      positionDropdown(input, ul);
+    }
+  });
+
+  window.addEventListener('resize', () => {
+    if (!ul.classList.contains('hidden')) {
+      positionDropdown(input, ul);
+    }
+  });
 }
 
-// Функция открытия списка, при его наличии
+// Функция открытия списка, при его наличии (для ивентов)
 function toggleSection(section) {
   if (section.classList.contains('disabled')) return;
   section.classList.toggle('open');
@@ -279,11 +320,17 @@ function updateRoomOccupancyPanel(roomId, year, month, day) {
         eventDiv.className = 'calendar-event';
         eventDiv.style.top = `${topPx}px`;
         eventDiv.style.height = `${heightPx}px`;
-        eventDiv.title = `Забронировано: ${r.start} - ${r.end}\nКто: ${r.who}\n${r.description ? 'Описание: ' + r.description : ''}`;
+        const eventNameValue = eventName.value.trim();
+        const eventParticipantsValue = eventParticipants.value.trim();
+        const eventDescriptionValue = eventDescription.value.trim();
         eventDiv.innerHTML = `
+          <strong>${eventNameValue || '(Без названия)'}</strong><br>
           <strong>${r.start} – ${r.end}</strong><br>
-          ${r.who}
+          ${eventDescriptionValue ? `<div>Описание: ${eventDescriptionValue}</div>` : ''}
+          ${eventParticipantsValue ? `<div>Участники: ${eventParticipantsValue}</div>` : ''}
         `;
+        eventDiv.title = `Название: ${eventNameValue}\nВремя: ${r.start} - ${r.end}\n${eventDescriptionValue ? 'Описание: ' + eventDescriptionValue + '\n' : ''}${eventParticipantsValue ? 'Участники: ' + eventParticipantsValue : ''}`;
+
         calendarEventsContainer.appendChild(eventDiv);
       });
 
@@ -297,14 +344,28 @@ function updateRoomOccupancyPanel(roomId, year, month, day) {
 // Проверка, все ли данные введены для бронирования + открытие кнопки, если да
 function checkReserveBtnState() {
   const floorSelected = floorList.querySelector('li.selected') !== null;
-  const yearSelected = yearSelect.value !== '';
-  const monthSelected = monthSelect.value !== '';
-  const daySelected = daySelect.value !== '';
-  const timeSelectedFrom = timeSelectFrom.value !== '';
-  const timeSelectedTo = timeSelectTo.value !== '';
+  const yearSelected = yearSelect.value.trim() !== '';
+  const monthSelected = monthSelect.value.trim() !== '';
+  const daySelected = daySelect.value.trim() !== '';
+  const timeSelectedFrom = timeSelectFrom.value.trim() !== '';
+  const timeSelectedTo = timeSelectTo.value.trim() !== '';
   const roomSelected = roomList.querySelector('li.selected') !== null;
+  const nameFilled = eventName.value.trim() !== '';
+  const participantsFilled = eventParticipants.value.trim() !== '';
+  const descriptionFilled = eventDescription.value.trim() !== '';
 
-  reserveBtn.disabled = !(floorSelected && yearSelected && monthSelected && daySelected && timeSelectedFrom && timeSelectedTo && roomSelected);
+  reserveBtn.disabled = !(
+    floorSelected &&
+    yearSelected &&
+    monthSelected &&
+    daySelected &&
+    timeSelectedFrom &&
+    timeSelectedTo &&
+    roomSelected &&
+    nameFilled &&
+    participantsFilled &&
+    descriptionFilled
+  );
 }
 
 
@@ -384,6 +445,9 @@ daySelect.addEventListener('change', () => {
 });
 timeSelectFrom.addEventListener('change', () => checkReserveBtnState());
 timeSelectTo.addEventListener('change', () => checkReserveBtnState());
+eventName.addEventListener('change', () => checkReserveBtnState());
+eventParticipants.addEventListener('change', () => checkReserveBtnState());
+eventDescription.addEventListener('change', () => checkReserveBtnState());
 roomList.addEventListener('click', e => {
   const li = e.target.closest('li');
   if (!li) return;
@@ -405,6 +469,11 @@ roomList.addEventListener('click', e => {
   checkReserveBtnState();
 });
 // Ивенты общих секций
+sectionLeftAdd.addEventListener('scroll', () => {
+  comboOptionsList.forEach(el => {
+    el.classList.add('hidden');
+  });
+});
 sectionFloors.querySelector('.section-header').addEventListener('click', () => toggleSection(sectionFloors));
 sectionDate.querySelector('.section-header').addEventListener('click', () => {
   toggleSection(sectionDate);
@@ -424,10 +493,10 @@ reserveBtn.addEventListener('click', () => {
   const year = yearSelect.value;
   const month = monthSelect.value.padStart(2, '0');
   const day = daySelect.value.padStart(2, '0');
-  const timeRange = timeSelectFrom.value;
-  const [startH, endH] = timeRange.split('-');
-  const startTime = `${year}-${month}-${day}T${startH}:00`;
-  const endTime = `${year}-${month}-${day}T${endH}:00`;
+  const timeFrom = timeSelectFrom.value;
+  const timeTo = timeSelectTo.value;
+  const startTime = `${year}-${month}-${day}T${timeFrom}:00`;
+  const endTime = `${year}-${month}-${day}T${timeTo}:00`;
   console.log(startTime, endTime)
   fetch(window.appConfig.mainUrl, {
     method: 'POST',
